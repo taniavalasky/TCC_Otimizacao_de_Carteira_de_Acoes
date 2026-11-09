@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Fundos Imobiliários - InvestFácil</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="menu_lateral">
+    <a href="{{ url_for('show_entries') }}">Início</a>
+    <a href="{{ url_for('produtos_info') }}">Produtos de Investimento</a>
+  </div>
+  <div class="caixa">Página de Fundos Imobiliários</div>
+
+
+  <div class="caixa_texto">
+    <p class="fontelora"> Também são conhecidos como FIIs, são uma forma de investimento coletivo voltada ao mercado imobiliário, em que várias pessoas (cotistas) aplicam seu dinheiro em empreendimentos como: </p>
+    <ul class="fontelora">
+      <li>Shoppings;</li>
+      <li>Prédios comerciais;</li>
+      <li>Galpões logísticos;</li>
+      <li>Hospitais;</li>
+      <li>Agências bancárias;</li>
+      <li>ou até mesmo em títulos ligados ao setor imobiliário (como CRIs e LCIs).</li>
+    </ul>
+  </div>
+
+  <div class="grid_caixa">
+    <div class="caixa_texto_grid">
+      <p class="fontelora_titulo">Como funcina </p>
+      <ul class="fontelora">
+        <li>Você compra cotas de um fundo na bolsa de valores, assim como ações.</li>
+        <li>O fundo investe o dinheiro dos cotistas em imóveis ou papéis ligados a imóveis.</li>
+        <li>O lucro obtido (com aluguéis, venda ou rendimentos) é distribuído mensalmente aos cotistas em forma de dividendos.</li>
+        <li>Você também pode ganhar com a valorização das cotas (comprar barato, vender mais caro).</li>
+      </ul>
+    </div>
+
+    <div class="caixa_texto_grid">
+      <p class="fontelora_titulo">Vantagens </p>
+      <ul class="fontelora">
+        <li>Renda mensal (isenção de IR para pessoas físicas em muitos casos);</li>
+        <li>Facilidade de diversificação com pouco dinheiro;</li>
+        <li>Liquidez (pode vender as cotas na bolsa);</li>
+        <li>Sem dor de cabeça com gestão de imóveis.</li>
+      </ul>
+      <p class="fontelora_titulo">Riscos </p>
+      <ul class="fontelora">
+        <li>Vacância (imóveis vazios);</li>
+        <li>Queda no valor de mercado das cotas.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="caixa_texto">
+    <p class="fonteLeagueGothic">Quer saber mais sobre algum FII específico?</p>
+    <p class="fontelora">
+      Insira o código do fundo aqui:
+    </p>
+    <input type="text" class="input_acao" placeholder="Ex: ABCP11, ALZC11" />
+    <button class="botao_busca">Buscar</button>
+
+    <div class="resultado">
+      <!-- Aqui aparecerão os dados da ação -->
+      <h3 class="fontelora_titulo">Informações do FII</h3>
+      <ul>
+        <li>Retorno médio: ...</li>
+        <li>Retorno risco: ...</li>
+      </ul>
+    </div>
+
+    <div class="grafico">
+
+      <div id="mensagemGrafico">
+          <p class="fontelora">
+              Busque um FII para visualizar o gráfico.
+          </p>
+      </div>
+
+      <canvas id="graficoAcao"></canvas>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+
+  let graficoAtual = null;
+
+
+  // =====================================================
+  // BOTÃO BUSCAR
+  // =====================================================
+
+  document
+      .querySelector(".botao_busca")
+      .addEventListener("click", buscarGrafico);
+
+
+  // =====================================================
+  // PERMITE PRESSIONAR ENTER
+  // =====================================================
+
+  document
+      .querySelector(".input_acao")
+      .addEventListener("keydown", function(event) {
+
+          if (event.key === "Enter") {
+              buscarGrafico();
+          }
+
+      });
+
+
+  // =====================================================
+  // BUSCAR DADOS DO FII
+  // =====================================================
+
+  async function buscarGrafico() {
+
+      const campo = document.querySelector(".input_acao");
+
+      let ativo = campo.value.trim().toUpperCase();
+
+
+      // -------------------------------------------------
+      // Verifica se foi digitado alguma coisa
+      // -------------------------------------------------
+
+      if (!ativo) {
+
+          mostrarMensagem("Digite o código de um FII.");
+
+          return;
+      }
+
+
+      // -------------------------------------------------
+      // Remove .SA caso o usuário tenha digitado
+      // -------------------------------------------------
+
+      ativo = ativo.replace(".SA", "");
+
+
+      // -------------------------------------------------
+      // Adiciona .SA para consultar o Yahoo Finance
+      // -------------------------------------------------
+
+      const ticker = ativo + ".SA";
+
+
+      try {
+
+          // -------------------------------------------------
+          // Consulta a rota Flask
+          // -------------------------------------------------
+
+          const resposta = await fetch(
+              `/grafico_fundo/${ticker}`
+          );
+
+
+          const dados = await resposta.json();
+
+
+          // -------------------------------------------------
+          // Verifica se o Flask retornou erro
+          // -------------------------------------------------
+
+          if (!resposta.ok || dados.erro) {
+
+              mostrarMensagem(
+                  dados.erro ||
+                  "Não foi possível encontrar o FII."
+              );
+
+              return;
+          }
+
+
+          // -------------------------------------------------
+          // Cria o gráfico
+          // -------------------------------------------------
+
+          criarGrafico(dados);
+
+
+      } catch (erro) {
+
+          console.error("Erro:", erro);
+
+          mostrarMensagem(
+              "Não foi possível carregar os dados do FII."
+          );
+      }
+
+  }
+
+
+  // =====================================================
+  // MOSTRAR MENSAGEM
+  // =====================================================
+
+  function mostrarMensagem(mensagem) {
+
+      const texto =
+          document.getElementById("mensagemGrafico");
+
+      const canvas =
+          document.getElementById("graficoAcao");
+
+
+      // Mostra mensagem
+
+      texto.style.display = "flex";
+
+      texto.querySelector("p").textContent = mensagem;
+
+
+      // Esconde gráfico
+
+      canvas.style.display = "none";
+
+
+      // Remove gráfico anterior
+
+      if (graficoAtual) {
+
+          graficoAtual.destroy();
+
+          graficoAtual = null;
+      }
+
+  }
+
+
+  // =====================================================
+  // CRIAR GRÁFICO
+  // =====================================================
+
+  function criarGrafico(dados) {
+
+      const canvas =
+          document.getElementById("graficoAcao");
+
+      const mensagem =
+          document.getElementById("mensagemGrafico");
+
+
+      // -------------------------------------------------
+      // Esconde mensagem
+      // -------------------------------------------------
+
+      mensagem.style.display = "none";
+
+
+      // -------------------------------------------------
+      // Mostra canvas
+      // -------------------------------------------------
+
+      canvas.style.display = "block";
+
+
+      // -------------------------------------------------
+      // Remove gráfico anterior
+      // -------------------------------------------------
+
+      if (graficoAtual) {
+
+          graficoAtual.destroy();
+      }
+
+
+      // =================================================
+      // NOMES DOS MESES
+      // =================================================
+
+      const nomesMeses = [
+
+          "jan",
+          "fev",
+          "mar",
+          "abr",
+          "mai",
+          "jun",
+          "jul",
+          "ago",
+          "set",
+          "out",
+          "nov",
+          "dez"
+
+      ];
+
+
+      // =================================================
+      // EIXO X
+      // =================================================
+
+      const labels = dados.datas.map(
+          function(data, index) {
+
+              // -----------------------------------------
+              // Separa dia / mês / ano
+              // -----------------------------------------
+
+              const partes = data.split("/");
+
+              const mes = parseInt(partes[1]);
+
+              const ano = partes[2];
+
+
+              // -----------------------------------------
+              // JANEIRO
+              // -----------------------------------------
+
+              if (mes === 1) {
+
+                  // Mostra somente no primeiro
+                  // registro de janeiro
+
+                  if (
+                      index === 0 ||
+                      parseInt(
+                          dados.datas[index - 1]
+                              .split("/")[1]
+                      ) !== 1
+                  ) {
+
+                      return (
+                          nomesMeses[mes - 1]
+                          + "/"
+                          + ano
+                      );
+                  }
+
+                  return "";
+              }
+
+
+              // -----------------------------------------
+              // OUTROS MESES
+              // -----------------------------------------
+
+              if (
+                  index === 0 ||
+
+                  parseInt(
+                      dados.datas[index - 1]
+                          .split("/")[1]
+                  ) !== mes ||
+
+                  dados.datas[index - 1]
+                      .split("/")[2] !== ano
+              ) {
+
+                  return nomesMeses[mes - 1];
+              }
+
+
+              return "";
+
+          }
+      );
+
+
+      // =================================================
+      // CRIA O GRÁFICO
+      // =================================================
+
+      graficoAtual = new Chart(
+          canvas,
+          {
+
+              type: "line",
+
+              data: {
+
+                  labels: labels,
+
+                  datasets: [
+
+                      {
+
+                          label:
+                              `Preço de ${dados.ativo}`,
+
+                          data:
+                              dados.precos,
+
+                          borderWidth: 2,
+
+                          pointRadius: 0,
+
+                          pointHoverRadius: 5,
+
+                          tension: 0.1,
+
+                          fill: false
+
+                      }
+
+                  ]
+
+              },
+
+
+              // =================================================
+              // CONFIGURAÇÕES
+              // =================================================
+
+              options: {
+
+                  responsive: true,
+
+                  maintainAspectRatio: false,
+
+
+                  // -------------------------------------------------
+                  // Interação
+                  // -------------------------------------------------
+
+                  interaction: {
+
+                      intersect: false,
+
+                      mode: "index"
+
+                  },
+
+
+                  // -------------------------------------------------
+                  // Legenda e tooltip
+                  // -------------------------------------------------
+
+                  plugins: {
+
+                      legend: {
+
+                          display: true
+
+                      },
+
+
+                      tooltip: {
+
+                          callbacks: {
+
+                              // Data completa
+
+                              title: function(context) {
+
+                                  const indice =
+                                      context[0].dataIndex;
+
+                                  return dados.datas[indice];
+
+                              },
+
+
+                              // Preço
+
+                              label: function(context) {
+
+                                  return (
+                                      "Preço: R$ "
+                                      +
+                                      context.parsed.y
+                                          .toFixed(2)
+                                  );
+
+                              }
+
+                          }
+
+                      }
+
+                  },
+
+
+                  // =================================================
+                  // EIXOS
+                  // =================================================
+
+                  scales: {
+
+                      x: {
+
+                          title: {
+
+                              display: true,
+
+                              text: "Data"
+
+                          },
+
+
+                          ticks: {
+
+                              autoSkip: false,
+
+                              maxRotation: 0,
+
+                              minRotation: 0
+
+                          }
+
+                      },
+
+
+                      y: {
+
+                          title: {
+
+                              display: true,
+
+                              text:
+                                  "Preço da cota (R$)"
+
+                          },
+
+
+                          ticks: {
+
+                              callback:
+                                  function(value) {
+
+                                      return (
+                                          "R$ "
+                                          +
+                                          value.toFixed(2)
+                                      );
+
+                                  }
+
+                          }
+
+                      }
+
+                  }
+
+              }
+
+          }
+      );
+
+  }
+
+  </script>
+
+</body>
+
+</html>
