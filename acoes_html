@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Ações - InvestFácil</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="menu_lateral">
+    <a href="{{ url_for('show_entries') }}">Início</a>
+    <a href="{{ url_for('produtos_info') }}">Produtos de Investimento</a>
+  </div>
+
+  <div class="caixa">Ações</div>
+
+  <div class="caixa_texto">
+    <p class="fontelora"> Ações são pequenas partes do capital de uma empresa que são vendidas ao público por meio da bolsa de valores. Quando você compra uma ação, você se torna sócio daquela empresa, ou seja, acionista. </p>
+    <p class="fontelora">Por que alguém compra ações? </p>
+    <ul class="fontelora">
+      <li>Para ganhar dinheiro de duas formas:</li>
+      <ul class="fontelora">
+        <li> <span class="negrito">Valorização: </span>comprar barato e vender mais caro.</li>
+        <li> <span class="negrito">Dividendos: </span>parte do lucro da empresa distribuída aos acionistas.</li>
+      </ul>
+    </ul>
+    <p class="fontelora"> <span class="negrito">Importante saber: </span>o valor das ações sobe e desce com o tempo (volatilidade). </p>
+  </div>
+
+  <div class="grid_caixa">
+    <div class="caixa_texto_grid">
+      <p class="fontelora_titulo">Ações Ordinárias (ON) </p>
+      <p class="fontelora"> <span class="negrito">Símbolo: </span>normalmente terminam com 3 (ex: PETR3, VALE3). </p>
+      <p class="fontelora"> <span class="negrito">Direito: </span>dão direito a voto nas assembleias da empresa. </p>
+      <p class="fontelora"> <span class="negrito">Perfil: </span>quem quer participar das decisões da empresa ou pensa no longo prazo. </p>
+    </div>
+
+    <div class="caixa_texto_grid">
+      <p class="fontelora_titulo">Ações Preferenciais (PN) </p>
+      <p class="fontelora"> <span class="negrito">Símbolo: </span>normalmente terminam com 4 (ex: PETR4, VALE4). </p>
+      <p class="fontelora"> <span class="negrito">Direito: </span>prioridade no recebimento de dividendos, mas não dão direito a voto. </p>
+      <p class="fontelora"> <span class="negrito">Perfil: </span>quem quer mais retorno com dividendos, sem se preocupar com decisões da empresa. </p>
+    </div>
+  </div>
+
+  <div class="caixa_texto">
+    <p class="fonteLeagueGothic">Quer saber mais sobre alguma ação específica?</p>
+    <p class="fontelora">
+      Insira o código da ação aqui:
+    </p>
+    <input type="text" class="input_acao" placeholder="Ex: PETR4, VALE3" />
+    <button class="botao_busca">Buscar</button>
+
+    <div class="resultado">
+      <!-- Aqui aparecerão os dados da ação -->
+      <h3 class="fontelora_titulo">Informações da Ação</h3>
+      <ul>
+        <li>Retorno médio: ...</li>
+        <li>Retorno risco: ...</li>
+      </ul>
+    </div>
+
+    <div class="grafico">
+      <div id="mensagemGrafico">
+        <p class="fontelora">
+            Busque uma ação para visualizar o gráfico
+        </p>
+      </div>
+      <canvas id="graficoAcao"></canvas>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+      let graficoAtual = null;
+      // =====================================================
+      // BOTÃO BUSCAR
+      // =====================================================
+      document
+          .querySelector(".botao_busca")
+          .addEventListener("click", buscarGrafico);
+
+      // Também permite pesquisar pressionando ENTER
+      document
+          .querySelector(".input_acao")
+          .addEventListener("keydown", function(event) {
+
+              if (event.key === "Enter") {
+                  buscarGrafico();
+              }
+          });
+
+      // =====================================================
+      // BUSCAR DADOS DA AÇÃO
+      // =====================================================
+
+      async function buscarGrafico() {
+          const campo =
+              document.querySelector(".input_acao");
+          let ativo =
+              campo.value.trim().toUpperCase();
+
+          // -------------------------------------------------
+          // Verificar se o usuário digitou alguma coisa
+          // -------------------------------------------------
+          if (!ativo) {
+              mostrarMensagem(
+                  "Busque um ativo"
+              );
+              return;
+          }
+
+          // -------------------------------------------------
+          // Adiciona .SA automaticamente
+          // -------------------------------------------------
+          if (!ativo.endsWith(".SA")) {
+              ativo += ".SA";
+          }
+          try {
+              const resposta = await fetch(
+                  `/grafico_acao/${ativo}`
+              );
+              const dados =
+                  await resposta.json();
+
+              // -------------------------------------------------
+              // Verificar erro retornado pelo Flask
+              // -------------------------------------------------
+              if (!resposta.ok || dados.erro) {
+                  mostrarMensagem(
+                      dados.erro ||
+                      "Não foi possível encontrar o ativo."
+                  );
+                  return;
+              }
+
+              // -------------------------------------------------
+              // Criar gráfico
+              // -------------------------------------------------
+              criarGrafico(
+                  dados
+              );
+          } catch (erro) {
+              console.error(
+                  "Erro:",
+                  erro
+              );
+
+              mostrarMensagem(
+                  "Não foi possível carregar o gráfico."
+              );
+          }
+      }
+
+      // =====================================================
+      // MOSTRAR MENSAGEM
+      // =====================================================
+
+      function mostrarMensagem(mensagem) {
+          const texto =
+              document.getElementById(
+                  "mensagemGrafico"
+              );
+          const canvas =
+              document.getElementById(
+                  "graficoAcao"
+              );
+          texto.textContent =
+              mensagem;
+              "block";
+          canvas.style.display =
+              "none";
+          // Se existir um gráfico anterior,
+          // remove.
+          if (graficoAtual) {
+              graficoAtual.destroy();
+              graficoAtual = null;
+          }
+      }
+
+      // =====================================================
+      // CRIAR GRÁFICO
+      // =====================================================
+      function criarGrafico(dados) {
+          const canvas =
+              document.getElementById(
+                  "graficoAcao"
+              );
+          const mensagem =
+              document.getElementById(
+                  "mensagemGrafico"
+              );
+
+          // -------------------------------------------------
+          // Esconder "Busque um ativo"
+          // -------------------------------------------------
+
+          mensagem.style.display =
+              "none";
+
+          // -------------------------------------------------
+          // Mostrar canvas
+          // -------------------------------------------------
+          canvas.style.display =
+              "block";
+
+          // -------------------------------------------------
+          // Destruir gráfico anterior
+          // -------------------------------------------------
+          if (graficoAtual) {
+              graficoAtual.destroy();
+          }
+          // =================================================
+          // PREPARAR EIXO X
+          // =================================================
+
+          /*
+          * O Yahoo retorna datas completas:
+          *
+          * 08/09/2025
+          * 09/09/2025
+          * 10/09/2025
+          * ...
+          *
+          * Vamos manter essas datas nos dados,
+          * mas mostrar somente:
+          *
+          * set/2025
+          * out/2025
+          * nov/2025
+          *
+          * no eixo X.
+          */
+          const nomesMeses = [
+            "jan",
+            "fev",
+            "mar",
+            "abr",
+            "mai",
+            "jun",
+            "jul",
+            "ago",
+            "set",
+            "out",
+            "nov",
+            "dez"
+        ];
+
+
+        const labels = dados.datas.map(function(data, index) {
+
+            // Separar:
+            // dia / mês / ano
+            const partes = data.split("/");
+
+            const mes = parseInt(partes[1]);
+            const ano = partes[2];
+
+
+            // -------------------------------------------------
+            // JANEIRO
+            // -------------------------------------------------
+            // Em janeiro mostramos:
+            //
+            // jan/2026
+            //
+            // para identificar o novo ano.
+            // -------------------------------------------------
+
+            if (mes === 1) {
+
+                // Mostrar somente no primeiro registro
+                // de janeiro.
+
+                if (
+                    index === 0 ||
+                    parseInt(dados.datas[index - 1].split("/")[1]) !== 1
+                ) {
+
+                    return nomesMeses[mes - 1] + "/" + ano;
+
+                }
+
+                return "";
+
+            }
+
+
+            // -------------------------------------------------
+            // OUTROS MESES
+            // -------------------------------------------------
+            // Mostra somente o nome do mês:
+            //
+            // fev
+            // mar
+            // abr
+            // ...
+            // -------------------------------------------------
+
+            if (
+                index === 0 ||
+                parseInt(dados.datas[index - 1].split("/")[1]) !== mes ||
+                dados.datas[index - 1].split("/")[2] !== ano
+            ) {
+
+                return nomesMeses[mes - 1];
+
+            }
+
+
+            return "";
+
+        });
+
+
+          // =================================================
+          // CRIAR CHART
+          // =================================================
+
+          graficoAtual = new Chart(
+              canvas,
+              {
+                  type: "line",
+                  data: {
+                      labels: labels,
+                      datasets: [
+                          {
+                              label:
+                                  `Preço de ${dados.ativo}`,
+                              data:
+                                  dados.precos,
+                              borderWidth: 2,
+                              pointRadius: 0,
+                              pointHoverRadius: 5,
+                              tension: 0.1,
+                              fill: false
+                          }
+                      ]
+                  },
+                  options: {
+                      responsive: true,
+                      maintainAspectRatio: false,
+
+                      // =====================================
+                      // INTERAÇÃO
+                      // =====================================
+
+                      interaction: {
+                          intersect: false,
+                          mode: "index"
+                      },
+                      
+                      // =====================================
+                      // LEGENDA
+                      // =====================================
+                      plugins: {
+                          legend: {
+                              display: true
+                          },
+                          // =================================
+                          // TOOLTIP
+                          // =================================
+                          tooltip: {
+                              callbacks: {
+                                  title: function(context) {
+                                      /*
+                                      * No tooltip mostramos
+                                      * a data completa.
+                                      */
+                                      const indice =
+                                          context[0].dataIndex;
+                                      return dados.datas[
+                                          indice
+                                      ];
+                                  },
+                                  label: function(context) {
+                                      return (
+                                          "Preço: R$ " +
+                                          context.parsed.y
+                                              .toFixed(2)
+                                      );
+                                  }
+                              }
+                          }
+                      },
+                      // =====================================
+                      // EIXOS
+                      // =====================================
+                      scales: {
+                          x: {
+                              title: {
+                                  display: true,
+                                  text: "Data"
+                              },
+                              ticks: {
+                                  /*
+                                  * Impede o Chart.js de
+                                  * remover automaticamente
+                                  * os meses.
+                                  */
+                                  autoSkip: false,
+                                  maxRotation: 0,
+                                  minRotation: 0
+                              }
+                          },
+                          y: {
+                              title: {
+                                  display: true,
+                                  text:
+                                      "Preço de fechamento (R$)"
+                              },
+                              ticks: {
+                                  callback:
+                                      function(value) {
+                                          return (
+                                              "R$ " +
+                                              value.toFixed(2)
+                                          );
+                                      }
+                              }
+                          }
+                      }
+                  }
+              }
+          );
+      }
+
+  </script>
+
+</body>
+
+</html>
+
