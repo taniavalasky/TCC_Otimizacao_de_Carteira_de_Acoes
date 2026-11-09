@@ -1,0 +1,687 @@
+@import url("https://fonts.googleapis.com/css2?family=League+Gothic:wght@400&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Lora:wght@400;500;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&display=swap");
+
+body {
+  background-color: #e8f3fd; /* exemplo: azul claro */
+  font-family: "League Gothic", sans-serif;
+  margin: 50px;
+}
+
+a {
+  background: #c3e0fc;
+  color: #000;
+  padding: 15px;
+  border-radius: 4px;
+  text-decoration: none;
+  border: 1px dotted #000; /* borda pontilhada */
+  font-size: 25px;
+}
+
+.menu_lateral {
+  position: fixed;
+  top: 50px;
+  left: 20px;
+  display: flex;
+  width: 220px;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 999;
+}
+
+img {
+  max-width: 400px; /* limite máximo que a imagem pode ter */
+  width: 100%; /* ocupa 100% da largura do contêiner, até o máximo */
+  height: auto; /* mantém a proporção */
+  border-radius: 4px;
+  display: block;
+  margin: 0 auto;
+}
+
+.imagem_container {
+  max-width: 400px; /* limite máximo */
+  width: 100%;
+  margin: 0 auto;
+}
+
+.imagem_container img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 4px;
+}
+
+h2 {
+  text-align: center;
+  font-size: 40px;
+  color: #000;
+  margin-bottom: 40px;
+}
+
+.frase {
+  text-align: center;
+  color: #000000;
+  font-size: 40px;
+}
+
+.item1 {
+  background: #4169e1;
+  color: #fff;
+  padding: 5px;
+  border-radius: 4px;
+  display: grid;
+}
+
+.caixa {
+  background: #c3e0fc;
+  width: 100%; /* ocupa toda a largura possível */
+  max-width: 780px; /* mas não passa de 780px */
+  height: 100px;
+  margin: 50px auto;
+  padding: 40px;
+  border-radius: 4px;
+  box-sizing: border-box;
+  border: 2px dotted #000;
+  font-size: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #000;
+}
+
+.caixa_texto {
+  background: #c3e0fc;
+  width: 780px; /* largura exata que você quer */
+  height: auto; /* altura exata que você quer */
+  margin: 50px auto; /* 50px de margem acima e abaixo + centralizado */
+  padding: 35px; /* espaço interno */
+  border-radius: 4px;
+  box-sizing: border-box; /* garante que padding conte dentro da largura/altura */
+  border: 2px dotted #000; /* borda pontilhada */
+  font-size: 40px;
+}
+
+.caixa_texto_grid {
+  background: #c3e0fc;
+  width: 100%; /* ocupa 100% da célula da grid */
+  height: auto;
+  padding: 35px;
+  border-radius: 4px;
+  box-sizing: border-box;
+  border: 2px dotted #000;
+  font-size: 40px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* duas colunas flexíveis */
+  gap: 20px;
+  justify-content: center;
+
+  width: 100%; /* ocupa toda a largura possível */
+  max-width: 780px; /* mas não ultrapassa 780px */
+  margin: 0 auto; /* centraliza horizontalmente */
+}
+
+.grid_caixa {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* duas colunas de 370px */
+  gap: 20px; /* espaço de 20px entre elas: 370 + 20 + 370 = 760px */
+  justify-content: center;
+  width: 780px; /* mesma largura da caixa_texto */
+  margin: 0 auto; /* centralizar */
+}
+
+.titulo {
+  text-align: center;
+  font-size: 45px;
+  color: #4169e1;
+  margin-bottom: 40px;
+}
+
+.formulario {
+  background-color: #ffffff;
+  padding: 40px;
+  border-radius: 4px;
+  max-width: 700px;
+  margin: 0 auto;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  border: 2px dotted #000; /* borda pontilhada */
+  font-family: "Lora", sans-serif;
+}
+
+.pergunta {
+  margin-bottom: 25px;
+  font-size: 20px;
+  color: #000;
+}
+
+.pergunta input {
+  margin: 5px 10px 10px 0;
+  transform: scale(1.2);
+}
+
+.negrito {
+  font-family: "Lora", serif;
+  font-weight: 700; /* ou 500 para menos intensidade */
+}
+
+.fontelora {
+  font-family: "Lora", serif;
+  font-size: 20px;
+}
+.fonteLeagueGothic {
+  font-family: "League Gothic", sans-serif;
+  font-size: 40px;
+  text-align: center;
+}
+
+.fontelora_titulo {
+  font-family: "Lora", serif;
+  font-size: 20px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.botao {
+  background: #c3e0fc;
+  color: #000;
+  padding: 10px 100px; /*altura e largura*/
+  font-size: 30px;
+  font-family: "League Gothic", sans-serif;
+  border: 2px dotted #000; /* borda pontilhada */
+  border-radius: 4px;
+  text-decoration: none;
+  cursor: pointer;
+  display: block;
+  margin: 30px auto 0 auto;
+  transition: background-color 0.3s;
+}
+
+/*pop-up c*/
+/* Pop-up overlay */
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6); /* fundo escuro */
+  display: none; /* começa invisível */
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+/* Caixa central */
+.popup-content {
+  background: #ffffff;
+  padding: 40px;
+  border-radius: 8px;
+  border: 2px dotted #4169e1;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  max-width: 500px;
+}
+
+/* Botão dentro do popup (herda seu estilo atual) */
+.popup .botao {
+  margin-top: 20px;
+}
+
+/* para busca de açoes*/
+
+.input_acao {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  font-size: 18px;
+  border-radius: 4px;
+  border: 1px solid #999;
+  box-sizing: border-box;
+  font-family: "Lora", serif;
+}
+
+.botao_busca {
+  margin-top: 10px;
+  padding: 10px 20px;
+  background-color: #4169e1;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 18px;
+  font-family: "Lora", serif;
+}
+
+.resultado {
+  margin-top: 30px;
+  background-color: #fff;
+  border: 1px dashed #000;
+  padding: 15px;
+  border-radius: 4px;
+  font-family: "Lora", serif;
+  font-size: 18px;
+}
+
+.grafico {
+  width: 100%;
+  margin-top: 30px;
+  height: 400px;
+  background-color: #fff;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: 1px dashed #000;
+  font-family: "Lora", serif;
+  font-size: 10px;
+  position: relative;
+}
+
+#mensagemGrafico {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+#mensagemGrafico p {
+    margin: 0;
+}
+
+
+
+/*tabela*/
+table {
+  width: 800px;
+  border-collapse: collapse;
+  background-color: #ffffff;
+  border: 1px solid #424242;
+  font-family: Lora;
+}
+.caixa_texto table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 18px;
+  background-color: #fff;
+}
+
+.caixa_texto th,
+.caixa_texto td {
+  border: 1px dotted #000;
+  padding: 10px;
+  text-align: left;
+}
+
+.caixa_texto th {
+  background-color: #d4d9dd;
+}
+
+/* === Estilo específico da página de perfil === */
+/* --- Pop-up --- */
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.popup-content {
+  background: #ffffff;
+  padding: 40px;
+  border-radius: 8px;
+  border: 2px dotted #4169e1;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  max-width: 500px;
+}
+
+.botao {
+  padding: 10px 20px;
+  background-color: #4169e1;
+  border: none;
+  color: white;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+/* === Formulário de Recomendações === */
+form {
+  background: #ffffff;
+  width: 100%;
+  max-width: 780px; /* igual às caixas azuis */
+  margin: 50px auto; /* centraliza e mantém distância das bordas */
+  padding: 40px;
+  border-radius: 4px;
+  border: 2px dotted #000;
+  box-sizing: border-box;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilo das perguntas */
+form label {
+  display: block;
+  font-family: "Lora", serif;
+  font-weight: 600;
+  font-size: 20px;
+  margin-top: 25px; /* espaço entre as perguntas */
+  color: #000;
+}
+
+/* Campos de entrada */
+form input[type="text"],
+form input[type="number"] {
+  width: 100%;
+  padding: 14px;
+  margin-top: 8px;
+  border-radius: 6px;
+  border: 1px solid #aaa;
+  font-size: 18px;
+  font-family: "Lora", serif;
+  box-sizing: border-box;
+}
+
+/* Botão */
+form button {
+  margin-top: 35px;
+  padding: 12px 40px;
+  background-color: #4169e1;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 22px;
+  font-family: "League Gothic", sans-serif;
+  cursor: pointer;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  transition: background-color 0.3s;
+}
+
+form button:hover {
+  background-color: #2f4cc2;
+}
+
+   .botao_verde {
+      background-color: #2ecc71;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .botao_azul {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .botao_verde:hover { background-color: #27ae60; }
+    .botao_azul:hover { background-color: #2980b9; }
+
+    /* Fundo escurecido */
+  #alertOverlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+
+  /* Caixa do alerta */
+  #alertBox {
+    background: white;
+    border-radius: 12px;
+    padding: 25px 35px;
+    max-width: 400px;
+    text-align: center;
+    font-family: "Lora", serif;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+    animation: pop 0.2s ease-in-out;
+  }
+
+  /* Animação de entrada */
+  @keyframes pop {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  /* Botão OK */
+  #alertBox button {
+    margin-top: 20px;
+    padding: 8px 20px;
+    background-color: #0056b3;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 15px;
+  }
+
+  #alertBox button:hover {
+    background-color: #003f7f;
+  }
+
+    #alertBox button.secondary {
+    background-color: #6c757d;
+  }
+
+  #alertBox button.secondary:hover {
+    background-color: #555;
+  }
+
+  /* carteira - tabela */
+
+  .tabela-carteira {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: "Lora", serif;
+  font-size: 18px;
+  background-color: #ffffff;
+  border: 2px dotted #000;
+  margin-top: 20px;
+}
+
+.tabela-carteira th {
+  background-color: #c3e0fc;
+  font-weight: bold;
+  text-align: center;
+  padding: 10px;
+}
+
+.tabela-carteira td {
+  text-align: center;
+  padding: 8px;
+  border: 1px dotted #000;
+}
+
+/* carteira recomendada */
+
+    .container {
+      background-color: #ffffff;
+      padding: 40px;
+      border-radius: 4px;
+      max-width: 700px;
+      margin: 0 auto;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      border: 2px dotted #000; /* borda pontilhada */
+      font-family: "Lora", sans-serif;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ccc;
+    }
+    th {
+      background-color: #2c74b3;
+      color: white;
+    }
+    .botoes {
+      margin-top: 25px;
+    }
+    button {
+      background-color: #2c74b3;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 5px;
+      transition: background-color 0.2s ease;
+    }
+    button:hover {
+      background-color: #1b4f8a;
+    }
+
+    /* Alerta centralizado */
+    .alerta {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      background: rgba(0,0,0,0.5);
+    }
+    .alerta .conteudo {
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+    .alerta button {
+      margin-top: 10px;
+      background-color: #2c74b3;
+    }
+
+.caixa_texto_recomendacao {
+  background: #c3e0fc;
+  width: 780px;              /* largura fixa */
+  height: auto;              /* ajusta conforme o conteúdo */
+  margin: 50px auto;         /* centraliza horizontalmente e dá espaço vertical */
+  padding: 35px;
+  border-radius: 4px;
+  box-sizing: border-box;
+  border: 2px dotted #000;
+  font-size: 40px;
+
+  /* --- Centralização --- */
+  text-align: center;        /* centraliza o texto */
+  display: flex;             /* permite centralizar vertical e horizontalmente */
+  flex-direction: column;    /* mantém o conteúdo empilhado */
+  align-items: center;       /* centraliza horizontalmente dentro do flex */
+  justify-content: center;   /* centraliza verticalmente dentro do flex */
+}
+
+/* container dos dois botões */
+.botoes_duplos {
+  border: none !important;
+  background: none !important;
+  display: flex;             
+  justify-content: center;   /* centraliza horizontalmente */
+  align-items: center;       /* centraliza verticalmente dentro do espaço disponível */
+  gap: 20px;                 
+  margin: 40px auto;         /* 🔹 centraliza horizontalmente o container */
+  width: fit-content;        /* 🔹 largura se ajusta aos botões */
+}
+
+/* estiliza os formulários que contêm os botões */
+.form_botao {
+  background: none;          
+  border: none !important;   
+  padding: 0;                
+  margin: 0;                 
+  box-shadow: none;          
+  outline: none;             
+}
+
+/* botão dentro do form */
+.form_botao button {
+  background-color: #2c74b3;  
+  color: white;                
+  border: none;                
+  width: 250px;                
+  height: 50px;                
+  border-radius: 6px;          
+  font-size: 18px;             
+  cursor: pointer;             
+  transition: background-color 0.3s ease; 
+  font-family: "League Gothic", sans-serif;
+  text-align: center;          
+  display: inline-block;       
+}
+
+/* efeito ao passar o mouse */
+.form_botao button:hover {
+  background-color: #1b4f8a;   
+}
+
+.popup {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .popup-content {
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 15px;
+      text-align: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    .popup-content p {
+      font-size: 20px;
+      font-family: 'Lora', serif;
+      color: #333;
+      margin-bottom: 15px;
+    }
+    .popup-content .botao {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: 0.3s;
+    }
+    .popup-content .botao:hover {
+      background-color: #45a049;
+    }
+    @keyframes fadeIn {
+      from {opacity: 0; transform: scale(0.9);}
+      to {opacity: 1; transform: scale(1);}
+    }
+
