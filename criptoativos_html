@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Criptoativos - InvestFácil</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="menu_lateral">
+    <a href="{{ url_for('show_entries') }}">Início</a>
+    <a href="{{ url_for('produtos_info') }}">Produtos de Investimento</a>
+  </div>
+
+  <div class="caixa">
+    Criptoativos
+  </div>
+
+  <div class="caixa_texto">
+    <p class="fontelora"> São ativos digitais que utilizam tecnologia de criptografia e blockchain para garantir segurança, descentralização e transparência em transações.
+      Eles não existem fisicamente, mas são registrados e movimentados em redes digitais descentralizadas, como o blockchain. </p>
+  </div>
+
+  <div class="grid_caixa">
+    <div class="caixa_texto_grid">
+      <p class="fontelora_titulo">Vantagens </p>
+      <ul class="fontelora">
+        <li> Transferência global rápida e sem intermediários; </li>
+        <li> Acesso descentralizado (sem precisar de bancos); </li>
+        <li> Propriedade digital transparente e rastreável.</li>
+      </ul>
+    </div>
+
+    <div class="caixa_texto_grid">
+      <p class="fontelora_titulo">Riscos </p>
+      <ul class="fontelora">
+        <li> Alta volatilidade (valores sobem e caem rapidamente);</li>
+        <li> Falta de regulação clara em muitos países;</li>
+        <li> Golpes e projetos fraudulentos. </li>
+      </ul>
+    </div>
+  </div>
+
+</body>
+
+</html>
