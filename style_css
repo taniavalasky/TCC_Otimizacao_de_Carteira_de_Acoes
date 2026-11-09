@@ -28,7 +28,7 @@ a {
   gap: 10px;
   z-index: 999;
 }
-
+ 
 img {
   max-width: 400px; /* limite máximo que a imagem pode ter */
   width: 100%; /* ocupa 100% da largura do contêiner, até o máximo */
