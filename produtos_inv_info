@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <title>InvestFacil - Produtos de Investimento</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+  <div class="menu_lateral">
+    <a href="{{ url_for('show_entries') }}">Início</a>
+  </div>
+
+  <div class="imagem_container">
+    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Imagem">
+  </div>
+
+  <div class="caixa">
+    Produtos de Investimento
+  </div>
+
+  <div class="grid">
+    <div class="item1">
+      <a href="{{ url_for('acoes') }}">Ações</a>
+    </div>
+
+    <div class="item1">
+      <a href="{{ url_for('criptoativos') }}">Criptoativos</a>
+    </div>
+
+    <div class="item1">
+      <a href="{{ url_for('fundos') }}">Fundos Imobiliários</a>
+    </div>
+
+    <div class="item1">
+      <a href="{{ url_for('renda_fixa') }}">Renda Fixa</a>
+    </div>
+  </div>
+
+</body>
+</html>
