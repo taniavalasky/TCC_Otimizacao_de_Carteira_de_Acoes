@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>InvestFácil - Recomendações</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+  <!-- Menu lateral -->
+  <div class="menu_lateral">
+    <a href="{{ url_for('show_entries') }}">Início</a>
+  </div>
+
+  <!-- Logo -->
+  <div class="imagem_container">
+    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo InvestFácil">
+  </div>
+
+  <!-- Título -->
+  <div class="caixa">Recomendações</div>
+
+  <!-- Texto introdutório -->
+  <div class="caixa_texto">
+    <p class="fontelora">
+      Responda o questionário a seguir para ver quais investimentos combinam mais com o seu perfil.
+    </p>
+  </div>
+
+  <!-- Formulário -->
+  <form action="{{ url_for('processar_recomendacoes') }}" method="POST">
+    
+    <label for="valor">Valor do investimento (R$):</label><br>
+    <input type="number" id="valor" name="valor" step="0.01" min="0" 
+          placeholder="Insira o valor que você tem disponível para investimento." required><br><br>
+
+    <label for="lucro">Retorno desejado ao ano (%):</label><br>
+    <input type="number" id="lucro" name="lucro" step="0.01" min="0" 
+          placeholder="Insira o percentual de retorno esperado (ex: 10 para 10%)." required><br>
+
+    <button type="submit" class="btn">Gerar Carteira</button>
+  </form>
+
+  <!-- Pop-up -->
+  <div id="popup" class="popup">
+    <div class="popup-content">
+      <p id="frase-popup" class="frase">Seu formulário foi enviado com sucesso!</p>
+      <button onclick="fecharPopup()" class="botao">Fechar</button>
+    </div>
+  </div>
+
+  <!-- Alerta Único -->
+  <div id="alertOverlay">
+    <div id="alertBox">
+      <p id="alertMessage"></p>
+      <div id="alertButtons">
+        <button id="okButton" onclick="closeAlert()">OK</button>
+        <button id="proceedButton" class="secondary" onclick="proceedAnyway()" style="display: none;">Prosseguir mesmo assim</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script de validação -->
+  <script>
+    const form = document.querySelector("form");
+    let proceed = false;
+
+    function showAlert(message, isWarning = false) {
+      const overlay = document.getElementById("alertOverlay");
+      const msg = document.getElementById("alertMessage");
+      const proceedButton = document.getElementById("proceedButton");
+
+      msg.textContent = message;
+      overlay.style.display = "flex";
+      proceedButton.style.display = isWarning ? "inline-block" : "none";
+    }
+
+    function closeAlert() {
+      document.getElementById("alertOverlay").style.display = "none";
+    }
+
+    function proceedAnyway() {
+      proceed = true;
+      document.getElementById("alertOverlay").style.display = "none";
+      form.submit();
+    }
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const lucro = parseFloat(document.getElementById("lucro").value.replace(",", "."));
+
+      if (isNaN(lucro)) {
+        showAlert("Insira um valor válido para a rentabilidade.");
+        return;
+      }
+
+      if (lucro > 25) {
+        showAlert("Erro: rentabilidade muito alta. Insira um valor até 25%.");
+        return;
+      }
+
+      if (lucro >= 20 && lucro <= 25 && !proceed) {
+        showAlert("Aviso: rentabilidade alta, talvez não seja atingida.", true);
+        return;
+      }
+
+      form.submit();
+    });
+  </script>
+
+</body>
+</html>
