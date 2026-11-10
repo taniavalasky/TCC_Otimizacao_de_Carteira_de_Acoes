@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <title>InvestFacil - Seu Perfil</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+  <div class="menu_lateral">
+    <a href="{{ url_for('show_entries') }}">Início</a>
+  </div>
+
+  <div class="imagem_container">
+    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Imagem">
+  </div>
+
+  <div class="caixa">Perfil do Investidor</div>
+
+  <form id="form-investidor" class="formulario">
+    <div class="pergunta">
+      <label class="negrito">1. Qual o seu objetivo ao investir?</label><br>
+      <input type="radio" name="objetivo" value="preservar"> Preservar o capital<br>
+      <input type="radio" name="objetivo" value="moderado"> Obter ganhos moderados<br>
+      <input type="radio" name="objetivo" value="ganhos"> Potencializar ganhos<br>
+    </div>
+
+    <div class="pergunta">
+      <label class="negrito">2. Por quanto tempo pretende manter o dinheiro investido?</label><br>
+      <input type="radio" name="prazo" value="curto"> Menos de 1 ano<br>
+      <input type="radio" name="prazo" value="medio"> 1 a 3 anos<br>
+      <input type="radio" name="prazo" value="longo"> Acima de 3 anos<br>
+    </div>
+
+    <div class="pergunta">
+      <label class="negrito">3. Qual seria sua reação diante de uma queda de 10%?</label><br>
+      <input type="radio" name="reacao" value="vender"> Venderia tudo<br>
+      <input type="radio" name="reacao" value="manter"> Esperaria recuperar<br>
+      <input type="radio" name="reacao" value="comprar"> Compraria mais<br>
+    </div>
+
+    <div class="pergunta">
+      <label class="negrito">4. Quanto você conhece sobre investimentos?</label><br>
+      <input type="radio" name="conhecimento" value="nenhum"> Nenhum<br>
+      <input type="radio" name="conhecimento" value="intermediario"> Intermediário<br>
+      <input type="radio" name="conhecimento" value="avancado"> Avançado<br>
+    </div>
+
+    <div class="pergunta">
+      <label class="negrito">5. Qual sua principal fonte de renda?</label><br>
+      <input type="radio" name="renda" value="fixa"> Salário fixo<br>
+      <input type="radio" name="renda" value="empreendimento"> Empreendimento<br>
+      <input type="radio" name="renda" value="variavel"> Renda variável<br>
+    </div>
+
+    <div class="pergunta">
+      <label class="negrito">6. Já investiu antes em produtos de risco?</label><br>
+      <input type="radio" name="experiencia" value="nao"> Não<br>
+      <input type="radio" name="experiencia" value="ocasional"> Sim, ocasionalmente<br>
+      <input type="radio" name="experiencia" value="frequente"> Sim, com frequência<br>
+    </div>
+
+    <button type="submit" class="botao">Enviar</button>
+  </form>
+
+  <!-- Pop-up -->
+  <div id="popup" class="popup">
+    <div class="popup-content">
+      <p id="frase-popup" class="frase">Você é um investidor arrojado com base nas suas respostas.</p>
+      <button onclick="fecharPopup()" class="botao">Salvar</button>
+    </div>
+  </div>
+
+  <script>
+    function fecharPopup() {
+      document.getElementById("popup").style.display = "none";
+    }
+
+    document.getElementById("form-investidor").addEventListener("submit", function (e) {
+      e.preventDefault();
+      let pontuacao = 0;
+
+      const respostas = {
+        objetivo: { preservar: 1, moderado: 2, ganhos: 3 },
+        prazo: { curto: 1, medio: 2, longo: 3 },
+        reacao: { vender: 1, manter: 2, comprar: 3 },
+        conhecimento: { nenhum: 1, intermediario: 2, avancado: 3 },
+        renda: { fixa: 1, empreendimento: 2, variavel: 3 },
+        experiencia: { nao: 1, ocasional: 2, frequente: 3 }
+      };
+
+      for (const campo in respostas) {
+        const marcado = document.querySelector(`input[name="${campo}"]:checked`);
+        if (marcado) pontuacao += respostas[campo][marcado.value];
+      }
+
+      let perfil = pontuacao <= 10 ? 'Conservador' : pontuacao <= 16 ? 'Moderado' : 'Arrojado';
+      document.getElementById("frase-popup").textContent = `Você é um investidor ${perfil} com base nas suas respostas.`;
+      document.getElementById("popup").style.display = "flex";
+    });
+  </script>
+</body>
+</html>
