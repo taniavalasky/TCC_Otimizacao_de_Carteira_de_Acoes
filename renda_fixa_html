@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Renda Fixa - InvestFácil</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="menu_lateral">
+    <a href="{{ url_for('show_entries') }}">Início</a>
+    <a href="{{ url_for('produtos_info') }}">Produtos de Investimento</a>
+  </div>
+
+  <div class="caixa">
+    Renda Fixa
+  </div>
+
+  <div class="caixa_texto">
+    <p class="fontelora"> É uma modalidade de investimento em que você empresta dinheiro a uma instituição (como governo ou banco) e, em troca, recebe de volta esse valor com juros definidos no momento da aplicação ou previsíveis. </p>
+  </div>
+
+  <div class="grid_caixa">
+    <div class="caixa_texto_grid">
+      <p class="fontelora_titulo">Principais características </p>
+      <ul class="fontelora">
+        <li> Rentabilidade previsível: você sabe de antemão quanto vai receber ou como será calculado o rendimento; </li>
+        <li> Baixo risco, especialmente em títulos emitidos pelo governo; </li>
+        <li> Prazos definidos para o resgate. </li>
+      </ul>
+    </div>
+
+    <div class="caixa_texto_grid">
+      <p class="fontelora_titulo">Tipos de Rentabilidade </p>
+      <ul class="fontelora">
+        <li> <span class="negrito">Prefixada:</span> taxa de juros definida no início (ex: 10% ao ano); </li>
+        <li> <span class="negrito">Pós-fixada:</span> atrelada a um indicador (ex: 100% do CDI ou Selic); </li>
+        <li> <span class="negrito">Híbrida: </span> combinação de ambos (ex: IPCA + 5%). </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="caixa_texto">
+    <p class="fontelora_titulo">Exemplos de Investimento em Renda Fixa</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Tipo</th>
+          <th>Quem emite</th>
+          <th>Como rende</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Tesouro Direto</td>
+          <td>Governo Federal</td>
+          <td>Atrelado à Selic, IPCA ou taxa fixa</td>
+        </tr>
+        <tr>
+          <td>CDB (Certificado de Depósito Bancário)</td>
+          <td>Bancos</td>
+          <td>Atrelado ao CDI ou taxa fixa</td>
+        </tr>
+        <tr>
+          <td>LCI / LCA</td>
+          <td>Bancos</td>
+          <td>Isentos de IR para pessoa física</td>
+        </tr>
+        <tr>
+          <td>Debêntures</td>
+          <td>Empresas</td>
+          <td>Pagam juros aos investidores</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="grid_caixa">
+    <div class="caixa_texto_grid">
+      <p class="fontelora_titulo">Vantagens </p>
+      <ul class="fontelora">
+        <li> Mais previsibilidade e segurança; </li>
+        <li> Algumas opções são isentas de Imposto de Renda (ex: LCI/LCA);</li>
+        <li> Ideal para objetivos de curto a médio prazo.</li>
+      </ul>
+    </div>
+
+    <div class="caixa_texto_grid">
+      <p class="fontelora_titulo">Riscos </p>
+      <ul class="fontelora">
+        <li> Pode render menos que a inflação (perda de poder de compra); </li>
+        <li> Liquidez limitada em alguns casos (você pode ter que esperar até o vencimento).</li>
+      </ul>
+    </div>
+  </div>
+
+</body>
+
+</html>
