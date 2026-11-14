@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>InvestFacil</title>
+  <!-- caminho correto para o CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+  <div class="imagem_container">
+    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Imagem">
+  </div>
+
+  <div class="frase">
+    <p class="frase">Invista no seu futuro com segurança e inteligência de forma fácil!</p>
+  </div>
+
+  <div class="grid">
+    <div class="item1">
+      <a class="acesso" href="{{ url_for('perfil') }}">Seu Perfil</a>
+    </div>
+
+    <div class="item1">
+      <a class="acesso" href="{{ url_for('recomendacoes') }}">Recomendações</a>
+    </div>
+
+    <div class="item1">
+      <a class="acesso" href="{{ url_for('produtos_info') }}">Produtos de Investimento</a>
+    </div>
+
+    <div class="item1">
+      <a class="acesso" href="{{ url_for('minha_carteira') }}">Minha Carteira</a>
+    </div>
+  </div>
+</body>
+
+</html>
+
