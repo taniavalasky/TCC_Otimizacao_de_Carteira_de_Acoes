@@ -1,1 +1,186 @@
-colocar codigo minha carteira
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Minha Carteira</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <!-- Biblioteca Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+    <div class="menu_lateral">
+        <a href="{{ url_for('show_entries') }}">Início</a>
+    </div>
+
+    <div class="caixa">Minha Carteira</div>
+
+    {% if carteira %}
+
+        <div class="caixa_texto">
+
+            <!-- Informações gerais -->
+            <ul>
+                <li>
+                    Valor investido:  
+                    R$ {{ "%.2f"|format(carteira.valor|float) }}
+                </li>
+
+                <li>
+                    Rentabilidade esperada:
+                    {{ carteira.lucro }}%
+                </li>
+
+                <li>
+                    Risco:
+                    {{ carteira.risco }}%
+                </li>
+            </ul>
+
+            <!-- Gráfico de distribuição -->
+            <h3>Distribuição da Carteira:</h3>
+
+            <div class="grafico-container">
+                <canvas id="graficoCarteira"></canvas>
+            </div>
+
+            <!-- Tabela de composição -->
+            <h3>Composição da Carteira:</h3>
+
+            <div class="tabela-container">
+
+                <table class="tabela-carteira">
+
+                    <thead>
+                        <tr>
+                            <th>Ativo</th>
+                            <th>Preço unitário</th>
+                            <th>Quantidade</th>
+                            <th>Valor investido</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for ativo in ativos %}
+                        <tr>
+                            <td>{{ ativo.ativo }}</td>
+
+                            <td>
+                                R$ {{ "%.2f"|format(ativo.preco|float) }}
+                            </td>
+
+                            <td>{{ ativo.quantidade }}</td>
+
+                            <td>
+                                R$ {{ "%.2f"|format(ativo.valor|float) }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+        <!-- Dados enviados pelo Flask -->
+        <script id="dados-ativos" type="application/json">
+            {{ ativos | tojson }}
+        </script>
+
+        <!-- Construção do gráfico -->
+        <script>
+
+            const dadosGrafico = JSON.parse(
+                document.getElementById('dados-ativos').textContent
+            );
+
+            const nomes = dadosGrafico.map(a => a.ativo);
+
+            const valores = dadosGrafico.map(a => Number(a.valor));
+
+            const total = valores.reduce(
+                (soma, valor) => soma + valor, 0
+            );
+
+            const ctx = document.getElementById('graficoCarteira');
+
+            new Chart(ctx, {
+
+                type: 'pie',
+
+                data: {
+                    labels: nomes,
+
+                    datasets: [{
+                        data: valores,
+
+                        backgroundColor: [
+                            '#B58AD9',
+                            '#8E6BB5',
+                            '#D8B9EF',
+                            '#5C5040',
+                            '#A99B8C',
+                            '#E6CFA8',
+                            '#A8B5C8',
+                            '#D98C8C',
+                            '#8BAF9B',
+                            '#E5B85C'
+                        ],
+
+                        borderWidth: 2,
+                        borderColor: '#F8F1E3'
+                    }]
+                },
+
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+
+                    plugins: {
+
+                        legend: {
+                            position: 'bottom'
+                        },
+
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+
+                                    const valor = context.raw;
+
+                                    const percentual = total > 0
+                                        ? (valor / total) * 100
+                                        : 0;
+
+                                    return context.label +
+                                        ': R$ ' +
+                                        valor.toFixed(2) +
+                                        ' (' +
+                                        percentual.toFixed(2) +
+                                        '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+        </script>
+
+    {% else %}
+
+        <p class="caixa_texto">
+            Você ainda não salvou nenhuma carteira.
+        </p>
+
+    {% endif %}
+
+</body>
+</html>
