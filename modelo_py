@@ -1,0 +1,164 @@
+import sqlite3
+import numpy as np
+import pandas as pd
+import gurobipy as gp
+from gurobipy import GRB
+import os
+
+# ------------------- CONFIGURAÇÃO -------------------
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+DB_PATH = os.path.join(BASE_DIR, "ativos.db")
+
+
+# ------------------- 1. Carregar dados -------------------
+def carregar_dados():
+    """Lê o banco de dados SQLite contendo os preços dos ativos."""
+    if not os.path.exists(DB_PATH):
+        raise FileNotFoundError(f"Banco de dados não encontrado em: {DB_PATH}")
+    
+    conn = sqlite3.connect(DB_PATH)
+    df = pd.read_sql_query("SELECT * FROM precos", conn)
+    conn.close()
+    return df
+
+
+# ------------------- 2. Gerar carteira ótima -------------------
+def gerar_carteira(valor, lucro):
+    """
+    Gera uma carteira ótima de investimento com restrição de cardinalidade.
+
+    Parâmetros:
+        valor (float): valor total a ser investido.
+        lucro (float): retorno desejado em % ao ano.
+
+    Retorna:
+        dict: informações completas da carteira, incluindo ativos, risco e rentabilidade.
+    """
+
+    # ------------------- Carregar dados -------------------
+    if not os.path.exists(DB_PATH):
+        return {"erro": f"Banco de dados não encontrado em {DB_PATH}"}
+
+    conn = sqlite3.connect(DB_PATH)
+    df = pd.read_sql_query("SELECT * FROM precos", conn, parse_dates=["Data"])
+    conn.close()
+
+    if df.empty:
+        return {"erro": "Banco de dados vazio."}
+
+    df = df.set_index("Data")
+
+# ------------------- Calcular retornos e covariância -------------------
+    df = df.sort_index()
+
+    # Usar os mesmos preços válidos e ordenados no notebook
+    df = df.apply(pd.to_numeric, errors="coerce")
+    df = df.dropna(axis=0, how="any")
+
+    retornos = df.pct_change(fill_method=None).dropna()
+
+    if retornos.empty:
+        return {"erro": "Não há dados suficientes para calcular os retornos."}
+
+    v_diario = retornos.mean().to_numpy()
+    Q_diario = retornos.cov().to_numpy()
+
+    # Mesma anualização do notebook
+    dias_uteis_ano = 252
+    v = (1 + v_diario) ** dias_uteis_ano - 1
+    Q = Q_diario * dias_uteis_ano
+
+    ativos = retornos.columns.tolist()
+    n = len(ativos)
+
+
+    # ------------------- Parâmetros -------------------
+    rho = lucro / 100                # retorno mínimo anual
+    alpha = 15                                # máximo de ativos
+
+    # ------------------- Modelo de otimização -------------------
+    model = gp.Model("Modelo_Exato")
+    model.Params.LogToConsole = 0
+    model.Params.NonConvex = 2
+
+    x = model.addMVar(n, vtype=GRB.CONTINUOUS, name="x")
+    y = model.addMVar(n, lb=0, ub=1, vtype=GRB.BINARY, name="y")
+
+    # Função objetivo: minimizar risco
+    model.setObjective(x @ Q @ x, GRB.MINIMIZE)
+
+    # Restrições
+    model.addConstr(x.sum() == 1, "soma_pesos")
+    model.addConstr(x <= y, "ligacao_x_y")
+    model.addConstr(y.sum() <= alpha, "num_max_ativos")
+    model.addConstr(v @ x >= rho, "retorno_minimo")
+
+    model.optimize()
+
+    if model.status != GRB.OPTIMAL:
+        print(f"Status do Gurobi: {model.status}")
+        return {"erro": "Solução ótima não encontrada."}
+
+    retorno_obtido = float(v @ x.X)
+    risco_obtido = float(np.sqrt(max(float(x.X @ Q @ x.X), 0.0)))
+    folga_retorno = retorno_obtido - rho
+
+    print(f"Retorno mínimo solicitado: {rho * 100:.2f}%")
+    print(f"Retorno da solução:        {retorno_obtido * 100:.2f}%")
+    print(f"Folga acima do mínimo:     {folga_retorno * 100:.2f} pontos percentuais")
+    print(f"Risco da solução:          {risco_obtido * 100:.2f}%")
+    print(f"Restrição ativa:           {abs(folga_retorno) <= 1e-6}")
+
+    if model.status != GRB.OPTIMAL:
+        return {"erro": "Solução ótima não encontrada."}
+
+    # ------------------- Resultados -------------------
+    pesos = {ativos[i]: float(x.X[i]) for i in range(n) if y.X[i] > 0.5 and x.X[i] > 1e-6}
+    if not pesos:
+        return {"erro": "Nenhum ativo foi selecionado."}
+
+    ativos_selecionados = list(pesos.keys())
+    precos = df.iloc[-1][ativos_selecionados].values
+    pesos_array = np.array(list(pesos.values()))
+
+    # ------------------- Cálculo de valores -------------------
+    valores_totais = pesos_array * valor
+    quantidades = np.floor(valores_totais / precos).astype(int)
+
+    valor_usado = np.dot(quantidades, precos)
+    saldo_restante = valor - valor_usado
+
+    if saldo_restante > 0:
+        ordem_prioridade = np.argsort(-pesos_array)
+        for i in ordem_prioridade:
+            preco = precos[i]
+            if preco <= saldo_restante:
+                quantidades[i] += 1
+                saldo_restante -= preco
+            if saldo_restante < min(precos):
+                break
+
+    df_result = pd.DataFrame({
+        "ativo": ativos_selecionados,
+        "preco": [round(p, 2) for p in precos],
+        "quantidade": quantidades,
+        "valor": [round(q * p, 2) for q, p in zip(quantidades, precos)]
+    })
+    df_result = df_result[df_result["quantidade"] > 0].reset_index(drop=True)
+
+    # ------------------- Métricas finais -------------------
+    total = df_result["valor"].sum()
+    retorno_total = float(v @ x.X) * 100                # anual (%)
+    risco_total = float(np.sqrt(x.X @ Q @ x.X)) * 100   # anual (%)
+
+    # ------------------- Estrutura de saída -------------------
+    carteira = {
+        "ativos": df_result.to_dict(orient="records"),
+        "valor_investido": round(valor, 2),
+        "total": round(total, 2),
+        "num_ativos": len(df_result),
+        "rentabilidade": round(retorno_total, 2),
+        "risco": round(risco_total, 2)
+    }
+
+    return carteira
