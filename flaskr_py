@@ -1,0 +1,412 @@
+from __future__ import with_statement
+import sqlite3
+import os
+from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash
+from contextlib import closing
+import pandas as pd
+import numpy as np
+from modelo import gerar_carteira  # Importa o modelo de otimização real
+import yfinance as yf
+import json
+
+# ---------------- CONFIGURAÇÃO ----------------
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+TMP_DIR = os.path.join(BASE_DIR, 'tmp')
+os.makedirs(TMP_DIR, exist_ok=True)
+
+DATABASE = os.path.join(TMP_DIR, 'flaskr.db')
+DEBUG = True
+SECRET_KEY = "1234"
+USERNAME = 'admin'
+PASSWORD = 'padrao'
+
+app = Flask(__name__)
+app.config.from_object(__name__)
+app.secret_key = SECRET_KEY
+
+
+# ---------------- BANCO DE DADOS ----------------
+def connect_db():
+    return sqlite3.connect(app.config['DATABASE'])
+
+
+def init_db():
+    """Inicializa o banco SQLite temporário (para o blog de exemplo do Flask)."""
+    with closing(connect_db()) as db:
+        with app.open_resource('schema.sql', mode='r', encoding='utf-8') as f:
+            db.cursor().executescript(f.read())
+        db.commit()
+
+
+@app.before_request
+def before_request():
+    g.db = connect_db()
+
+
+@app.teardown_request
+def teardown_request(exception):
+    g.db.close()
+
+
+# ---------------- ROTAS PRINCIPAIS ----------------
+@app.route('/')
+def show_entries():
+    cur = g.db.execute('select title, text from entries order by id desc')
+    entries = [dict(title=row[0], text=row[1]) for row in cur.fetchall()]
+    return render_template('show_entries.html', entries=entries)
+
+
+@app.route('/add', methods=['POST'])
+def add_entry():
+    if not session.get('logged_in'):
+        abort(401)
+    g.db.execute('INSERT INTO entries (title, text) VALUES (?, ?)',
+                 [request.form['title'], request.form['text']])
+    g.db.commit()
+    flash('Nova entrada foi enviada com sucesso!')
+    return redirect(url_for('show_entries'))
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+        if request.form['username'] != app.config['USERNAME']:
+            error = 'Nome de usuário inválido'
+        elif request.form['password'] != app.config['PASSWORD']:
+            error = 'Senha inválida'
+        else:
+            session['logged_in'] = True
+            flash('Você está logado!')
+            return redirect(url_for('show_entries'))
+    return render_template('login.html', error=error)
+
+
+@app.route('/logout')
+def logout():
+    session.pop('logged_in', None)
+    flash('Você foi desconectado')
+    return redirect(url_for('show_entries'))
+
+
+# ---------------- PÁGINAS FIXAS ----------------
+@app.route('/perfil')
+def perfil():
+    return render_template('janelas/perfil.html')
+
+
+@app.route('/produtos')
+def produtos_info():
+    return render_template('janelas/produtos_info.html')
+
+
+@app.route('/acoes')
+def acoes():
+    return render_template('janelas/acoes.html')
+
+
+@app.route('/criptoativos')
+def criptoativos():
+    return render_template('janelas/criptoativos.html')
+
+
+@app.route('/fundos')
+def fundos():
+    return render_template('janelas/fundos.html')
+
+
+@app.route('/renda_fixa')
+def renda_fixa():
+    return render_template('janelas/renda_fixa.html')
+
+
+# ---------------- FLUXO DE RECOMENDAÇÕES ----------------
+@app.route('/recomendacoes', methods=['GET'])
+def recomendacoes():
+    """Exibe o formulário para gerar a carteira recomendada."""
+    return render_template('janelas/recomendacoes.html')
+
+
+@app.route('/processar_recomendacoes', methods=['POST'])
+def processar_recomendacoes():
+    """Recebe o formulário e chama o modelo para gerar a carteira."""
+    try:
+        valor = float(request.form['valor'])
+        lucro = float(request.form['lucro'])
+    except ValueError:
+        flash("Por favor, insira valores numéricos válidos.")
+        return redirect(url_for('recomendacoes'))
+
+    # 🔹 Chama o modelo para gerar a carteira (risco calculado automaticamente)
+    carteira = gerar_carteira(valor, lucro)
+
+    # Caso o modelo retorne erro (ex: banco vazio ou sem solução)
+    if "erro" in carteira:
+        flash(carteira["erro"])
+        return redirect(url_for('recomendacoes'))
+
+    # 🔹 Renderiza a página com o resultado (agora mostrando o risco real)
+    return render_template(
+        "janelas/carteira_recomendada_resp_mod.html",
+        carteira=carteira,
+        risco=carteira.get("risco")  # <<< aqui muda de risco_estimado → risco
+    )
+
+
+# ---------------- SALVAR E VISUALIZAR CARTEIRA ----------------
+@app.route('/salvar_carteira', methods=['POST'])
+def salvar_carteira():
+    """Salva a carteira sugerida na sessão."""
+    session['carteira_salva'] = {
+        'valor': request.form.get('valor'),
+        'lucro': request.form.get('lucro'),
+        'risco': request.form.get('risco'),
+        'tabela': request.form.get('tabela')
+    }
+    flash('Carteira salva com sucesso!')
+    return redirect(url_for('minha_carteira'))
+
+
+@app.route('/minha_carteira')
+def minha_carteira():
+    """Mostra a carteira salva pelo usuário."""
+
+    carteira_salva = session.get('carteira_salva')
+
+    if not carteira_salva:
+        flash('Nenhuma carteira salva ainda.')
+        return redirect(url_for('recomendacoes'))
+
+    # Converte o JSON armazenado na sessão em dicionário Python
+    dados_tabela = json.loads(carteira_salva['tabela'])
+
+    # Extrai a lista de ativos da carteira
+    ativos = dados_tabela.get('ativos', [])
+
+    return render_template(
+        "janelas/minha_carteira.html",
+        carteira=carteira_salva,
+        ativos=ativos
+    )
+
+# ---------------- GRAFICO AÇÃO ----------------
+@app.route("/grafico_acao/<ativo>")
+def grafico_acao(ativo):
+    try:
+        # ----------------------------------------------------
+        # Padroniza o código
+        # ----------------------------------------------------
+        ativo = ativo.upper().strip()
+        if not ativo.endswith(".SA"):
+            ativo += ".SA"
+
+        # ----------------------------------------------------
+        # Consulta o Yahoo Finance
+        # ----------------------------------------------------
+
+        ticker = yf.Ticker(
+            ativo
+        )
+
+        # ----------------------------------------------------
+        # Busca os últimos 12 meses
+        #
+        # period = 1y
+        # interval = 1d
+        #
+        # Ou seja:
+        # aproximadamente 1 ano de preços diários.
+        # ----------------------------------------------------
+
+        dados = ticker.history(
+            period="1y",
+            interval="1d",
+            auto_adjust=False
+        )
+
+        # ----------------------------------------------------
+        # Verifica se encontrou dados
+        # ----------------------------------------------------
+
+        if dados.empty:
+            return {
+                "erro":
+                    f"Não foram encontrados dados para {ativo}."
+            }, 404
+        
+        # ----------------------------------------------------
+        # Seleciona somente o fechamento
+        # ----------------------------------------------------
+        precos = dados["Close"].dropna()
+        # ----------------------------------------------------
+        # Preparar datas
+        # ----------------------------------------------------
+        datas = [
+            data.strftime("%d/%m/%Y")
+            for data in precos.index
+        ]
+        # ----------------------------------------------------
+        # Preparar preços
+        # ----------------------------------------------------
+
+        valores = [
+            round(float(preco), 2)
+            for preco in precos
+        ]
+
+        # ----------------------------------------------------
+        # Retornar para o JavaScript
+        # ----------------------------------------------------
+        return {
+            "ativo":
+                ativo.replace(".SA", ""),
+            "datas":
+                datas,
+            "precos":
+                valores
+        }
+
+    except Exception as erro:
+        print(
+            f"Erro ao gerar gráfico de {ativo}:"
+        )
+        print(erro)
+        return {
+            "erro":
+                "Erro ao consultar os dados da ação."
+        }, 500
+
+# ---------------- GRAFICO FUNDO ----------------
+
+@app.route("/grafico_fundo/<ativo>")
+def grafico_fundo(ativo):
+
+    try:
+
+        # ----------------------------------------------------
+        # 1. Padroniza o código do FII
+        # ----------------------------------------------------
+
+        ativo = ativo.upper().strip()
+
+        if not ativo.endswith(".SA"):
+            ativo += ".SA"
+
+
+        # ----------------------------------------------------
+        # 2. Consulta o Yahoo Finance
+        # ----------------------------------------------------
+
+        ticker = yf.Ticker(ativo)
+
+
+        # ----------------------------------------------------
+        # 3. Busca os últimos 12 meses
+        #
+        # period = 1y
+        # interval = 1d
+        #
+        # Utilizamos os preços diários do FII.
+        # ----------------------------------------------------
+
+        dados = ticker.history(
+            period="1y",
+            interval="1d",
+            auto_adjust=False
+        )
+
+
+        # ----------------------------------------------------
+        # 4. Verifica se encontrou dados
+        # ----------------------------------------------------
+
+        if dados.empty:
+
+            return {
+                "erro":
+                    f"Não foram encontrados dados para o FII {ativo}."
+            }, 404
+
+
+        # ----------------------------------------------------
+        # 5. Seleciona somente o preço de fechamento
+        # ----------------------------------------------------
+
+        precos = dados["Close"].dropna()
+
+
+        # ----------------------------------------------------
+        # 6. Verifica novamente se existem preços
+        # ----------------------------------------------------
+
+        if precos.empty:
+
+            return {
+                "erro":
+                    f"Não existem preços disponíveis para {ativo}."
+            }, 404
+
+
+        # ----------------------------------------------------
+        # 7. Preparar datas
+        # ----------------------------------------------------
+
+        datas = [
+
+            data.strftime("%d/%m/%Y")
+
+            for data in precos.index
+
+        ]
+
+
+        # ----------------------------------------------------
+        # 8. Preparar preços
+        # ----------------------------------------------------
+
+        valores = [
+
+            round(float(preco), 2)
+
+            for preco in precos
+
+        ]
+
+
+        # ----------------------------------------------------
+        # 9. Retornar os dados para o JavaScript
+        # ----------------------------------------------------
+
+        return {
+
+            "ativo":
+                ativo.replace(".SA", ""),
+
+            "datas":
+                datas,
+
+            "precos":
+                valores
+
+        }
+
+
+    except Exception as erro:
+
+        print(
+            f"Erro ao gerar gráfico do FII {ativo}:"
+        )
+
+        print(erro)
+
+
+        return {
+
+            "erro":
+                "Erro ao consultar os dados do FII."
+
+        }, 500
+
+# ---------------- EXECUÇÃO ----------------
+if __name__ == '__main__':
+    app.run(debug=True)
