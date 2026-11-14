@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>InvestFácil - Carteira Recomendada</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <!-- Título -->
+  <div class="caixa" style="text-align: center;">Sugestão de Carteira</div>
+
+  <!-- Informações da carteira -->
+  <div class="caixa_texto_recomendacao">
+    <p class="fontelora"><b>Valor disponível:</b> R$ {{ "%.2f"|format(carteira.valor_investido) }}</p>
+    <p class="fontelora"><b>Rentabilidade esperada:</b> {{ "%.2f"|format(carteira.rentabilidade) }}%</p>
+    <p class="fontelora"><b>Risco:</b> {{ "%.2f"|format(carteira.risco) }}%</p>
+  </div>
+
+  <div class="caixa_texto_recomendacao">
+    <p class="fontelora"><b>Valor total investido:</b> R$ {{ "%.2f"|format(carteira.total) }}</p>
+  </div>
+
+  <!-- Tabela de ativos -->
+  <div class="container">
+    <table>
+      <thead>
+        <tr>
+          <th>Ativo</th>
+          <th>Preço (R$)</th>
+          <th>Quantidade</th>
+          <th>Valor Total (R$)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ativo in carteira.ativos %}
+        <tr>
+          <td>{{ ativo.ativo }}</td>
+          <td>{{ "%.2f"|format(ativo.preco) }}</td>
+          <td>{{ ativo.quantidade }}</td>
+          <td>{{ "%.2f"|format(ativo.valor) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <!-- Botões -->
+    <div class="botoes_duplos">
+      <!-- Formulário que será submetido via JavaScript -->
+      <form id="formSalvar" class="form_botao" action="{{ url_for('salvar_carteira') }}" method="POST">
+        <input type="hidden" name="valor" value="{{ carteira.valor_investido }}">
+        <input type="hidden" name="lucro" value="{{ carteira.rentabilidade }}">
+        <input type="hidden" name="risco" value="{{ carteira.risco }}">
+        <input type="hidden" name="tabela" value='{{ carteira | tojson | safe }}'>
+        <button type="button" onclick="abrirPopup()">Salvar em Minha Carteira</button>
+      </form>
+
+      <form class="form_botao" action="{{ url_for('recomendacoes') }}" method="GET">
+        <button type="submit">Refazer</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Pop-up -->
+  <div id="popup" class="popup" style="display: none;">
+    <div class="popup-content">
+      <p id="frase-popup" class="frase">Salvo!</p>
+      <button onclick="irParaCarteira()" class="botao">Ir para Minha Carteira</button>
+    </div>
+  </div>
+
+  <script>
+    function abrirPopup() {
+      document.getElementById("popup").style.display = "flex";
+    }
+
+    function irParaCarteira() {
+      // Envia o formulário e deixa o Flask redirecionar
+      document.getElementById("formSalvar").submit();
+    }
+  </script>
+</body>
+</html>
+
