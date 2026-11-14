@@ -1,0 +1,49 @@
+import yfinance as yf
+import pandas as pd
+import sqlite3
+import os
+
+# Lista de ativos 
+ativos = [
+    "ALUP3.SA", "BEES4.SA", "BIOM3.SA", "BMOB3.SA", "BNBR3.SA", "ENJU3.SA", "FIEI3.SA", "GEPA4.SA", "IGTI4.SA", 
+    "KLBN11.SA","MAPT4.SA", "MULT3.SA", "NUTR3.SA", "PLPL3.SA", "RDOR3.SA", "RECV3.SA", "SEQL3.SA", "EGAF11.SA",
+    "GRWA11.SA", "KDOL11.SA", "BCIA11.SA", "DPRO11.SA", "HOFC11.SA", "IRIM11.SA", "KFOF11.SA", "MAXR11.SA", "RSPD11.SA",
+    "SPXS11.SA", "TRXF11.SA", "VOTS11.SA" 
+]
+# ENBR3.SA, "VVAR3.SA", CCRO3.SA, "ALUGUEL3.SA",  "BRML3.SA", "IGTA3.SA", "LAME4.SA", "BTOW3.SA", CARNE3.SA, SULA11.SA, GOLL4.SA, TIMP3.SA, HGTX3.SA, CIEL3.SA, JBSS3.SA, VIVT4.SA
+# Baixa os dados no período 01/06/2025 a 01/06/2026 
+data = yf.download(
+    tickers=ativos,
+    start="2025-06-01",
+    end="2026-06-01",
+    group_by="ticker",
+    auto_adjust=True
+)
+
+    
+# /*  Cria DataFrame de preços de fechamento ajustado */
+close_data = pd.DataFrame()
+for ativo in ativos:
+    if ativo in data.columns.get_level_values(0):
+        try:
+            close_data[ativo] = data[ativo]['Close']
+        except KeyError:
+            print(f"Ativo {ativo} não tem coluna 'Close'. Ignorado.")
+    else:
+        print(f"Dados para o ativo {ativo} não foram encontrados.")
+
+# /* Conecta ao banco SQLite (ou cria se não existir) */
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+DB_PATH = os.path.join(BASE_DIR, "ativos.db")
+print(f"Salvando banco em: {DB_PATH}")  # linha para confirmar o caminho
+
+conn = sqlite3.connect(DB_PATH)
+
+# /* Salva o DataFrame como tabela no banco */
+close_data.to_sql("precos", conn, if_exists="replace", index_label="Data")
+
+print("Banco de dados criado com sucesso no período 01/06/2025 a 01/07/2026!")
+
+# /* Fecha a conexão */
+conn.close()
+
